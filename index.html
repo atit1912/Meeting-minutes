@@ -218,10 +218,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
   .p-info-table .lbl{color:#555;font-weight:600;white-space:nowrap;width:110px;}
   .p-info-table .val{border-bottom:1px solid #ddd;}
 
-  /* section header */
-  .p-sec{margin-bottom:14px;break-inside:avoid;}
+  /* section header — ไม่ใส่ break-inside:avoid ที่ก้อนใหญ่ ปล่อยให้ไหลเต็มหน้า */
+  .p-sec{margin-bottom:14px;}
   .p-sec-head{background:#E7F0EF;padding:5px 10px;border-left:4px solid #0E5C5B;
     font-weight:700;font-size:13px;color:#0A4544;margin-bottom:8px;
+    break-after:avoid;break-inside:avoid;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
   /* attendees */
@@ -229,6 +230,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
   .p-att-table th{background:#0E5C5B;color:#fff;padding:5px 8px;text-align:left;
     font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .p-att-table td{padding:4px 8px;border-bottom:1px solid #eee;font-size:13px;}
+  .p-att-table tr{break-inside:avoid;}
+  .p-att-table th{break-inside:avoid;}
   .p-att-table tr:nth-child(even) td{background:#f8f8f8;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
@@ -253,12 +256,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);bo
   .p-task-table th{background:#0E5C5B;color:#fff;padding:5px 8px;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .p-task-table td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;}
+  .p-task-table tr{break-inside:avoid;}
   .p-task-table tr:nth-child(even) td{background:#f8f8f8;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
-  /* signature */
-  .p-sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px;padding-top:16px;}
-  .p-sig-box{text-align:center;}
+  /* signature — ทั้งบล็อกห้ามแตกข้ามหน้า */
+  .p-sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px;padding-top:16px;
+    break-inside:avoid;}
+  .p-sig-box{text-align:center;break-inside:avoid;}
   .p-sig-line{border-bottom:1px solid #000;margin:36px 20px 6px;}
   .p-sig-name{font-size:13px;font-weight:600;}
   .p-sig-label{font-size:12px;color:#555;margin-top:4px;}
