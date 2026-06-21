@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบบันทึกการประชุม — SHE&En CPF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Trirong:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Variables ===== */
+:root{
+  --ink:#1A2B2E; --teal:#0E5C5B; --teal-dark:#0A4544; --teal-soft:#E7F0EF;
+  --gold:#C8A24B; --gold-soft:#F5EDD8; --paper:#FBFAF6; --card:#fff;
+  --line:#E4E0D6; --muted:#6E7B7B; --danger:#B23A48; --ok:#2F7D5B;
+  --shadow:0 1px 3px rgba(26,43,46,.06),0 8px 24px rgba(26,43,46,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);
+  line-height:1.55;-webkit-font-smoothing:antialiased;padding:0 0 96px;}
+
+/* ===== Nav tabs ===== */
+.nav{display:flex;background:var(--teal-dark);max-width:820px;margin:0 auto;}
+.nav button{flex:1;padding:12px 8px;background:none;border:none;color:rgba(255,255,255,.65);
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;}
+.nav button.active{color:#fff;border-bottom-color:var(--gold);}
+.tab{display:none;max-width:820px;margin:0 auto;}
+.tab.active{display:block;}
+
+/* ===== Letterhead ===== */
+.letterhead{background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);
+  color:#fff;padding:22px 20px 18px;position:relative;overflow:hidden;}
+.letterhead::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+  border-radius:50%;background:rgba(200,162,75,.14);}
+.lh-top{display:flex;align-items:flex-start;gap:14px;position:relative;z-index:1}
+.logo{width:62px;height:62px;border-radius:12px;flex:0 0 62px;background:#fff;
+  border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;
+  overflow:hidden;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.logo img{width:100%;height:100%;object-fit:contain}
+.lh-org{flex:1;min-width:0}
+.lh-org .name{font-weight:600;font-size:15px;letter-spacing:.2px}
+.lh-org .sub{font-size:12.5px;color:var(--gold);font-weight:500;margin-top:2px}
+.doc-ref{flex:0 0 auto;text-align:center;white-space:nowrap;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  border-radius:8px;padding:6px 12px;font-size:11px;color:rgba(255,255,255,.85);line-height:1.5;}
+.doc-ref b{color:var(--gold);font-size:12.5px;}
+#docRef{border-bottom:1px dashed rgba(200,162,75,.6);outline:none;cursor:text;
+  padding-bottom:1px;min-width:40px;display:inline-block;}
+#docRef:focus{border-bottom-style:solid;background:rgba(255,255,255,.08);border-radius:3px;padding:0 4px 1px;}
+.lh-title{position:relative;z-index:1;margin-top:18px;display:flex;flex-direction:column;
+  align-items:center;text-align:center;gap:9px;}
+.lh-title h1{font-family:'Trirong',serif;font-weight:600;font-size:26px;line-height:1.1;}
+.gold-rule{height:3px;background:var(--gold);}
+
+/* ===== Form sections ===== */
+.body{padding:18px 16px 0}
+.section{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;}
+.sec-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);}
+.sec-no{width:26px;height:26px;border-radius:7px;flex:0 0 26px;background:var(--teal-soft);
+  color:var(--teal);font-family:'Trirong',serif;font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center;}
+.sec-head h2{font-size:16px;font-weight:600}
+.sec-body{padding:16px}
+.grid{display:grid;gap:13px}
+.grid.two{grid-template-columns:1fr 1fr}
+.field label{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-bottom:5px}
+.field label .req{color:var(--gold)}
+input,select,textarea{width:100%;font-family:inherit;font-size:14.5px;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px;
+  transition:border-color .15s,box-shadow .15s;}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
+.rows{display:flex;flex-direction:column;gap:10px}
+.row-item{border:1px solid var(--line);border-radius:11px;padding:12px;background:#FCFCFA;position:relative;}
+.row-item .rm{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:7px;
+  background:#fff;color:var(--danger);cursor:pointer;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--line);}
+.row-item .rm:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.agenda-no{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:50%;background:var(--gold-soft);color:#8a6d22;font-weight:700;font-size:13px;
+  font-family:'Trirong',serif;margin-bottom:8px;}
+.add-btn{width:100%;margin-top:12px;padding:11px;border:1px dashed var(--teal);background:var(--teal-soft);
+  color:var(--teal-dark);font-family:inherit;font-weight:600;font-size:14px;border-radius:10px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.add-btn:hover{background:#dceae9}
+.att-row{display:grid;grid-template-columns:1fr 130px auto;gap:8px;align-items:center}
+.att-row .rm-inline{width:34px;height:38px;border-radius:8px;border:1px solid var(--line);
+  background:#fff;color:var(--danger);cursor:pointer;font-size:17px;}
+.att-row .rm-inline:hover{background:var(--danger);color:#fff}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.farm-other{margin-top:10px;display:none}
+
+/* ===== Action bar ===== */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.92);
+  backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 14px;
+  display:flex;gap:9px;max-width:820px;margin:0 auto;}
+.btn{flex:1;padding:12px 8px;border-radius:11px;border:none;cursor:pointer;font-family:inherit;
+  font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-primary:disabled{background:#aaa;cursor:not-allowed}
+.btn-gold{background:var(--gold);color:#3a2e0e}
+.btn-gold:hover{filter:brightness(.96)}
+.btn-ghost{background:#fff;color:var(--teal);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--teal-soft)}
+
+/* ===== Toast ===== */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);
+  background:#1A2B2E;color:#fff;padding:10px 20px;border-radius:999px;
+  font-size:14px;font-weight:500;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ===== History tab ===== */
+.hist-bar{display:flex;gap:10px;padding:16px 16px 0;align-items:center;}
+.hist-bar input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+  font-family:inherit;font-size:14px;}
+.hist-cards{padding:12px 16px;display:flex;flex-direction:column;gap:12px;}
+.hist-card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);padding:14px 16px;cursor:pointer;transition:border-color .15s;}
+.hist-card:hover{border-color:var(--teal);}
+.hist-card .hc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.hist-card .hc-farm{font-size:11.5px;color:var(--teal);font-weight:600;background:var(--teal-soft);
+  padding:2px 8px;border-radius:99px;}
+.hist-card .hc-date{font-size:12px;color:var(--muted);}
+.hist-card .hc-topic{font-weight:600;font-size:15px;margin-top:6px;}
+.hist-card .hc-meta{font-size:12.5px;color:var(--muted);margin-top:4px;}
+.hist-card .hc-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px;}
+.hist-empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:14px;}
+
+/* ===== Detail modal ===== */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;overflow-y:auto;padding:16px;}
+.modal-bg.open{display:flex;align-items:flex-start;justify-content:center;}
+.modal{background:#fff;border-radius:18px;max-width:760px;width:100%;margin:auto;overflow:hidden;}
+.modal-head{background:linear-gradient(135deg,var(--teal),var(--teal-dark));color:#fff;
+  padding:18px 20px;display:flex;justify-content:space-between;align-items:center;}
+.modal-head h2{font-size:18px;font-weight:600;}
+.modal-close{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;}
+.modal-body{padding:20px;}
+.m-section{margin-bottom:20px;}
+.m-section h3{font-size:14px;font-weight:700;color:var(--teal);border-bottom:1px solid var(--line);
+  padding-bottom:6px;margin-bottom:10px;}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:14px;}
+.m-label{color:var(--muted);font-size:12px;}
+.m-val{font-weight:500;}
+.m-item{background:#FCFCFA;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+  margin-bottom:8px;font-size:14px;}
+.m-item .mi-no{font-family:'Trirong',serif;font-weight:700;color:var(--gold);margin-right:6px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:600;}
+.badge-ok{background:#dcf0e7;color:var(--ok);}
+.badge-warn{background:#fdf3dc;color:#8a6d22;}
+.badge-danger{background:#fde8ea;color:var(--danger);}
+
+/* ===== Print / PDF ===== */
+@media print{
+  .nav,.actionbar,.hist-bar,.add-btn,.rm,.rm-inline,.btn-del,
+  .modal-bg,.toast{display:none!important;}
+  body{padding:0;background:#fff;}
+  .tab{display:block!important;max-width:100%;}
+  #tabHistory{display:none!important;}
+  .letterhead{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .gold-rule{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .section{box-shadow:none;border:1px solid #ddd;break-inside:avoid;}
+  input,select,textarea{border:none!important;box-shadow:none!important;
+    padding:0!important;background:transparent!important;}
+  .sec-no{background:#E7F0EF!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+@media(max-width:560px){
+  .grid.two{grid-template-columns:1fr}
+  .lh-title h1{font-size:22px}
+  .att-row{grid-template-columns:1fr 110px auto}
+  .btn span.lbl{display:none}
+  .btn{font-size:18px}
+  .m-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Nav ===== -->
+<div class="nav">
+  <button class="active" onclick="switchTab('tabForm',this)">📝 บันทึกการประชุม</button>
+  <button onclick="switchTab('tabHistory',this)">📋 ประวัติการประชุม</button>
+</div>
+
+<!-- ===================== TAB: FORM ===================== -->
+<div id="tabForm" class="tab active">
+  <header class="letterhead">
+    <div class="lh-top">
+      <div class="logo"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCACgAJ4DASIAAhEBAxEB/8QAHQAAAgMAAwEBAAAAAAAAAAAABwgABQYBBAkDAv/EAFQQAAECBAIEBgoNCgQGAwAAAAECAwAEBQYHERIhMUEIExdRYdEUIjI2VHGBlLKzFTVCUlZydHWDkaGx0hYYIzNVkpOVosEkJURiJzeChOHwNFNz/8QAGgEAAgMBAQAAAAAAAAAAAAAAAAQBAgMFBv/EADkRAAECAwMHCQgDAQEAAAAAAAEAAgMEERIhMRNBUWFxofAFIjJCgbHB0eEUNDVTcpGSwiMz8RUk/9oADAMBAAIRAxEAPwBVIuqBZtfufSNJpr0w2g5KdOSG0nmK1EJz6M4+1h2ubvueUpalltg6TswsHIpZQkqWR05DIdJEOdhzhxJ1mnNzM0gy9MY/Qysox2oyG3XuHTtJzJMITc2+G9sGC2rz9gNJVmtreUoycHbzUoA01gZnaZ1jIf1x2n8ELvZaLiW6Y8R7huoMlR/qh6eS21vAXf46+uJyW2t4C7/HX1xla5R0M3qeYkNawbvJxwJNPlmwfdLnWQB4+3jl3Bu8m3FIFPlnADlpInWSD0jtofHkutYf6FzzhfXHAwvtY7JFzzhfXEWuUdDN6OYkRXgxeKUNKElJqKwSQmeZzR8bttUflvBq8nHUoMhKoBOWmqeZCR091sh8eS61vAXf46+uJyXWt4C7/HX1xNrlHQzejmJGuQq7uej/AMya64nIVd3PR/5k11w8vJda/gLvnC+uJyXWt4C75wvrgtco6Gb0cxI1yFXdz0f+ZNdcTkKu7no/8ya64eXkutbwF3zhfXE5LrW8Bd84X1wWuUdDN6OYkZ5DLu09H/Kdmefsi1l98c8hV3c9H/mTXXDycl1reAu+cL64nJda3gLvnC+uC1yjoZvRzEh72DV5NOKQKfKuAHLTRPMlJ8XbR+pfBi8X3AhUlJsjLu3Z5kJ9KHuOF9qg5GRc84X1xOS61vAXfOF9cRa5R0M3o5iRvkKu7no/8xa64/D2B13tNlaUUt0j3DdRZKj/AFQ8/Jfa3gLvnC+uIrC21yCOwnR0iYX1xNrlHQzejmLzur9q1u13m2qzTZiTLoJbUsZocA26KhmFeQxUw7OJGHcpTml0iaUZii1RJQC4AVML3LH+9OYUFDIkZg6iYTCq096kVObp0wAHpV5bDgHvkqKT9ojeTmzGtMiNsvbiO4jaoc2l4WowiUpN+0/IkZofByO0cUuH5wy7y6f9J6aoQjCAti/JHjEqUS0+EZHLJXFKyJ5xt1Q/GGXeXIfSemqMD8RH0fsp6i1ESJGXr98yFOtquVeVeS6aVptL5uNAGQ+sj7Y6ESI1gq5UJoKlZ7E7FA2/NS9tULRmLgn1JabSNYlwo5aSunmEb2kSPsbTZaUK1OKabAUtRzK1e6UTzk5mFxwolUs3PK3Zc61v1eqvaNNlFfrHVKPbPH3qAM8j0aoZkagIVln5R7nk8ccYLGC9zxaN1cBq9VyTlEBzgOY/4nOWzTk2/Sn9CpTg0nVpOtlrrP3RosHcSGr9t1AmFpTVJMBuZRvXzLHQfvjcRxbs5tOtSI7DEMKt6IMUV5XfTrJoT9XqK8m29SEA9s4o7EiLiammZOXdmH3EtNNJK1rUcgkAayYT7GHEl2/6+pMutSaVJkolke+51npMEaIRzW4ncs5uZEBlo45k3FErMncFLlqnIOpdlplAWhQP2HpEd2FawDxRNsVMW/VH8qZOryaWo6mHT/Yw0oIIzGwxMKJaFHYhWl47YzA9qmoCIDAlx6xPFp0g0OmvAVWeQQop2sNHafGdgjs4F4k/lnQRTp50Gq09IQvPa83sSvx7jEZcW7ObTr433KcuzKZKt62F9y1QctyamaQ4W6lJjsmWI3qTrKTzgjMEdMVmGeJMhiDSi63kxUGAEzUqTrQrnHOmNfNOKal3XEN8apCCoIzy0shs8sK1PTTdm3nLX1ajyl0WZmdGZaGoyyie3ZcG7eQYXjxMjFDgcc2xEaIWUdmz+fZnTVRzFYm4KeZ+TkOPAmJxgzDCT7tAyz+/74soda8OwK2Q8xm9qad8pPoGEPxB7+7i+c5n1iofDGbL2Kp2ezsk+gYQy++MF7V/jigueyMxplGejnxis8s90c2W99jbG9xVz0QrTCTv9p3xXvVLh+8Mu8un/SemqEEwk7/ad8V71S4fvDLvLp/0npqgPxEfR+yOorC76waBbFUqg2ysstxPjA1fblC6YVVeTnbPu9FfWp6TYcaqTzZP685ntD0KVo5wf8RqcurWNXJJoZrdk3NEc5Az/tCnWfJTU7btelml8RLOcSZp5WxtpBKjn5cgBvJiJ9wBJdq3khc+O94jMDdDu5EnAWmz95XtPXnU05tSiS2wMskpWoZBKRuCU80Hq465K23Q5yrTigliUaLiunLYPKdUUuFkvR2LFpJobZRJuMhfbd0pR7oq6c4GnCeutUrTKfbbCyDNKMw+AfcJ1JH15xvDGTg1bieNwV6iXglzjU47SgJctwTd0Vycq86sqemXCs5+5G4DxCO5Y15Ttj3FL1eTUSEHRea3Otnakx8rNteavK45Oiyp0VzCjpL3ISBmVGOrX6FPW1V5mk1FlTUzLrKVAjURuI6DFeb/AF8f6vNgxR/6NeOtGHG3GZi4KXLUO331djTLSHpt0aiQRmG+uAxS6XN1moMU+RZU9MvrCEISNZMdWGT4OuGvsXJflXUmcpqaToyiFDW23vX4z90TRwuBq48buMU0y3PRquuA3JcHmXZV9bLqVNutqKVJOopIMMHhzjzLSVizjVdcLlRpbQDGe2aSdSR4wcgeiK/hFYZ9hvm7qUx+hdITOoQO5VuX4jvgD5QUcc9HDj/FFuJIxS0Xg8BWVw16duasTVWqDpcmJlZWok6gNwHQI71iXbM2Xc8lWJcnRaXk6jPUts90D5I4siz5++Lgl6RIoPbnSddy7VpG9RjpXFRZi265PUmaSQ7KPKbOe8A6j5RBzf60sMq2kxrx1p6qdPsVSQYnpVYcYfbS42obwRmIWO9ZM4bYnzbU1L8db1aVpvMK7hxpZ7bLmUknMHdBF4Nd1Kq9oPUd9ek9S3dFOZ18UrWPqOcd/hBU+hzloMmqqDMwqZS1KPga21q25/7ctsVj0fBtvzY8bwvRvOWhCIw0OI8vBDPEa5nLZxStrsKaU8xSJWWbQv37atufjSRDNtrS42lae5UAR4oTK6KZUpy8aRITjZ7NcZlZdQ25lPa5g7wQAc+aHLl2+JYbaHuEhP1DKIkHAio0eJRLOcYkS1p8FgMZvamnfKT6BhDr/Od9XCciP8ymdR//AEVD44ze1NO+Un0DCH4gd/VxfOUz6xUVlvfY2xvinj0QrPCEti/JHTSoni39HI5ZHilaz0Q/GGfeXIfSemqELwcEv+Xcrx5UFcRMcVl7/ilZZ9G2H1wz7y5D6T01QO+Ij6P2R1Fg8QcR5vDzE2Vbmwp6h1GUQH2jr0CCUlaennG8QP8AEWhIsmy59mQdC5KvVcPMuIOpyXSjSSPFmr7IIHCTs52t23L1yUaK36WTxgSMyWlbT5DrgOU6oTt6WIxaaSXp2nzyFygzzJac7Up8hyMZR2hjquwB7z3ePauVMPdbdCIvI5v2vCYPAJtxvC+lcZn23GKTn73TOUATH+prqOJlRbKiUSiW2EjmyTmftMEO0b9TYOI8xZE66BSQGZZpZ2NPBAGfiUYGuOsg5I4nVYrBCZgofQecKSOqNocS01gIoRx5rKfcPZrLTgQD2LbcFmjtvVesVZaQVy7SGEE7tI5n7BG9xwwtTetINTprSfZiSQSjIfr0Dag9PNAt4ON6yVuXDN0qoPJYZqaUhtxZySHE7ATuzBhowQoZg6jG8Nge1zTjX/FvJNZElQw4Z15/ONracU24koWkkKB1EEQ0GAGJwuOlC3am8DUpJGTSlHW80P7j7oy/CDwp7GW5d1GY/RLOc8ygdyf/ALAOY74CVFrM7b9Ul6nT3lMzMusLQsf+7IpV1ajpDjeuawukY9HdE9yPPCIxP4ppVoUp4cYsAzziT3I3N9cACRkZipzjMnKNKeffWEIbSMyonYI/M3Nvz827NTLinX3lla1qOZUTtMMjgBhV7DSqLprDGU8+n/CtLGtlB914z90HOrTrHj7DjFADp6PXqju8ytphNhtL4fUBLa0oXU5kBc26Of3g6BAT4TVIbkb4lp1tIHZ0qFryG1STo5/VlDRuvNsNLccWlCEDNSlHIJHOTCiY63rK3leZVT3A7JSLfY7bg2OHPNSh0ZxeI1rbLG4+hXR5QDGSxYNVFb8GapLlb8fktLtJuUWCOlJBH943PCnQ4q26MtOfFpm1hXjKNX94HnB0YCL4fqjyg3K0+SddecOxIIy1xcVa45vGqp3PIywV2NKSPHU5nnLawSfGoZwvEi2Q4AZx4LCWNZQQzia0Vla7Em5S7YxFrrmUrRqa40sna682spaSOc5H7I2mCd41S/Zq4K3P5oY45tiWZHctIAJyHTr1mAJeFefFu2/Z0uVcXIsh59CfdvuHPLyAgeWGVwbtByzrGk5SYRozcxnMvjeFK2DyDKKSjKlpGGPZxgmoERzotgYAX6yurjN7U075SfQMIfiB39XF85TPrFQ+GM3tTTvlJ9Awh+IHf3cXzlM+sVF5b32Nsb4ronohWOEnf7TviveqXD9YZd5dP+k9NUIZg12P+XUtx+el2PMcVt7vilZf3h9MM+8uQ+k9NUB+Ij6P2R1FZXNV6ZRaYuYrJCJBZ4p1akFSEhWrtuYbs+mF6qVnuYd3hI3rariKpbvHhS1S6g5xCFHJSVZbuYwx9ZpMrXKZM06dbDkvMtqbWk8xEKFX5O6MGbqek5ScfYazKml7Wplrdmk6jzERebY8uu7ON4XPnHhga5wuBxGI9F3MepBUliG9UWieIqLTc2w4PdApGseURr6za81jDhjSLlkEcbXac2qWfRvmEo3fG3xS1e7Kbi9bUvS5iWYptyU8EyYR2rM0ne2n3pO0DZnGiw6uqewwwvl6tN0tyZknqm63MIz0XGhqAUM9W0EZGF7YqA7EePrd/qWYxjojzWsNwr9vFAN5h6UeW082tp1tWSkqGSkkRubXxtvO1mUS7FS7LlkakszaeMCR0HbBx9jsM8b5czDSWxUAO3LZ4qZR4x7r7YyFW4K7mkpVHuBJRuRNMnP60wyOdeRXWOKpf2GPCNqXdUcdirPznqtMyy5eftymTLbiShadNQCgdoIgO1KYlpueeflJXsRlxRUlnT0gjPcDzQU5jgy3m0TxUxS3huIeKfvED+8bPqVj1f2JqpZ7JDaXCGV6SQDs1wNs2gb666+KwmxNFn84uGzwXToNTYo9VYn5iQan0sKC0sOqIQpQ2aWW0dEFSY4T9zrb0Jak0qXyGQOSlZfbGBsPD+qYhT0zJUl2WQ9Lth1XHqKQU55aiI30twX7qdI4+pUtkbyFKVl9kBslxIrXVXwUyrZsM/hFx2LEXTirdt3oUzU6s72OrbLsfo2z4wNvljN02mzlXnG5KQlnJiYdOihttOZJhgKNwWZNtaV1mvPPgHW3LNaAPlOuL+duDDbBNlUrIS7blSyyLbB4x9Xx1nuYgmzgKazxUrb2CK825l1Bt4CHl30BzCTDBqkKWPZi4Xc5xaD3DSRnxYPNmRnHywFcNvSN0Xa8glqSlAy3q7txRzCRz7o7+MHs1iBSrPqyadxC6gXktsAk8WnMFJUT0AknmiunsTqfYVtMWlabMvOTDKuMmam6gKQX95bB25bATCwcDVsPE3+W+9MODYUbKOuY0UHaFZ4dWJKUueN84hTMvT0qWZiXlZogKWonMKKduXMMoYqmzzVTkWZxgLDTyAtGmnRJSdhy3Zwq+Fln1jFW7BVq6/MzdPlFhyYeeUVcYoHUgf3y3Q16EBtCUpSEhIAAGwCHJRrgTo47k3JEGHVooNeJ1lD7Gb2pp3yk+gYQ/EDv7uL5ymfWKh8MZvamnfKT6BhD8QO/u4vnKZ9YqMZb32Nsb3FPHohW+DcqqZvqVUlQHEMTDpz3gNKGQ+uH1wz7y5D6T01QieCHfv8A9jNerMPZhn3mSH0npqgPxEfR+yOotRGevSxqPfVKVT6sxpAa23k6ltK50n+0aGJHSewOFCsyARQpQ73wNuiznlzMkyupyCDpJmJYHTQN2kkawemN/hbd0tiJbM7h/cqQ3OqaUGnFJ0VOjbmR79J19MFPEKv3BbVFVUqFR2aoWsy60pagtKecAbemAC7wgn3agibmbNoSphpekl0JUlxKgffDXnHNitIdZbfTuPGjFc0sgyr62qA5qEhYOuUiuYcXO5KrW9JzsqvNp9skaadykneDDCYOY2t3eG6JXFNs1dIybd2JmepXRvjB1/F2z8SpFMjddCmae+n9TPSqg4WT4tRI6IHU5atQpboqNDm01SUaUFtzckSVN5bCpHdJPkiMqGOvNDpN1dvGzOEtDcYD7UA2mZxnHYngzzGqFO4SX/Mlz5Iz9xg3YNYkC/Lf4ubUE1WSAbmU71jcsDp39MUmJeBcxiBdC60itNSaSyhoNlkqPajbnnDT32w1zRn8Cn5thmIFId9Vg+Cz31Vf5EPTEMyVBKcycgIF2FODUxhtWJufXVmp5MyxxOilooKe2Bz2xUY/YlvUeWFqUVxRqE2jOYU3rU02diRlvV90Q1+TaSRibvsolwZeXGUzeapMYseHUuv0C1JjQ0SW5ieRtz3pR1wNcMbCnsRbmQ25xpkWlh2cmFa9WezPeox06XZrDCkTV11BNGkz2xaI05l0cyWxrHjOUEaUx8oFo0oUa0rWV2IkEFyZd0VOnepWjrz8sKiIHk0NdJ8BxvSJOUiZSaNkDAei5xrxCXU5tuyrWaUuXkwGnly6NJSlZZcWkjYANR54rsP+DvWq663OXEF0uQ1Hij+ucHNl7nyxzQ8fJ+Wm0MUeyqIh11WSUS6FaayenaYY+2ZurT9HYma1JMyM46NJUu0sr0BzEnfF4LS51l1x1eeYaE1Dhwpl5iF1qmqgC+lCoFOtums02lyyJaVZGSUJH2k7z0xYRzEjpNaGigXSQ7xm9qad8pPoGEPxA7+7i+cpn1iofDGf2pp/yk+gYQ/EHv7uL5zmfWKjmS3vsbY3xVz0QtBgh37/APYzXqzD2YZ95kh9J6aoQbCFxaL9kAlRAW2+lWW8cUrVD84Zd5dP+k9NUB+Ij6P2R1FqIkSJHUVFwoaQyMDq9cC7WvFxc0GlU2eXrL8qAAo/7k7DBGiZjnEUfDa/pBVexrxZcKhLLV+C7X5YqNLq0jNp3JdBbV/cRUU/ArEykz6X5BlqWdSdTzc2kf8AohsMxziIMjsyjEy1RS0adnkk/wDnQK2mimwoWUCi4jUeXEw5SrSmKilJSqYGbbro5iUgDOO/L4su0eZ7DvSgTlCdOejMD9LLLy5ljZBEIGXNGTXYElVK67Wa8fZN1KiJWXcz4iWRuyRsKucmF3S8SFQQCe2lE5QgXFUiMS63cz+hZtrPzkuDkZ+oK4hnyDaYpbstXEqqS7i6bJ2xITbxJemZTMPr6NNQ1eMRuqHZTNsVh2Zo77jFPmQS/IKUVNpc3Lbz7npEacZGBss6KP5ia9lFBaSKEpSjwfcQ56ZUuZlZfTWc1OvTQUT0k6zGmo3BZqTqkqq9dlmE+6RLNlavrOQhj9Q5omY5oYEuBdaO7ySjeToANSK7SsbZOE1s2KA5T5TjpzLXNv8AbOeTcPJGzjjSHTHIIMbMY1go1ONaGijRQKRIkSLqyHeM3tTT/lJ9Awh+IHf3cXznM+sVD44ye1lN3f4o+jCB3WgouerpUhTZTOvgoVtT+kVqMcuW99jbG+KueiFeYR9/1O+K/wCqXD94Zd5dP+k9NUIJhH3/AFO+K/6pcP3hl3l0/wCk9NUB+Ij6P2R1FqIkSJHUVEAeEdi5cFnVSRt63pvsFx6X7KmJlKApzIqKUoSSCB3JJOWeyAjy0YifC+q/vp6o1nCo/wCZ6Pm1j0nI1fBcsi3bgolaqNYpElUX0TSJdHZTQcDaAgK7UHUCSdZ6BHWYIcKAHltVy3l8SMWA0Qn5aMRPhfVf309UX9lcIC+KRcMkupVp+qSDjyETEvNBKs0EgEpIAKVDPMa/HDM13CKzKnRp2TYteiMPPMrQ26iVShTayDoqCkjMZHI6oAH5p96NONlNUoLgBBUeNcG/4kQ2PAeCHABS6DHYQQarT8JDFu4reuGWtq36i7Tm0yyZiYfYyDjilk6KQrakADPVkSTAW5Wb9+GVc87VGq4S6SjFN9J2iRlR/SY2uD+MeH9nWFIUitB1NQaW6p7QkC4DpOKI7YDXqIizAGQWuDKkqryXxXNLqBCDlZv34ZVzztUaKw8c71otyyLk/XZ2pyDj6G5mWm18YFIUoAlJOtKhnmCOaDevhFYVKQUkTCgRrT7GHX0bIVJhxD1dbcaTooXOBSE5bAXMwPqi8OkQEOZRVfWGQWvqjtwiMXbnpN5OW1Qqm/TJWTZbU6uXIS484saWtW0AAgZDLfAl5Wb9+GVc87VGi4RurGCs/El/Upgk4ZY3YeWxYdGo9V44T0qxoP6MgVjS0ie6y17Yo0BkJpayqs4l8VwLqIKcrN+/DKuedqgycGK9Lkua7KtL1uu1GpMtSAcQ3MvFaUq4xIzAO/KNf+cZhZzzH8sPVGosDFKzr8qUzJW3xvZEuzxzmnKFkaGkBty16zsjCPEJYRk6a+AtoMMB4Nuq3cSJEjnp9DvGf2pp/wApPoGEPxB7+7i+c5n1iofDGb2pp3yk+iYQ2/Vad8XArRUnOpTJyUMiP0itojly3vsbY3uKueiFaYRJKr9p+QJyQ+TkNg4pcP1hl3l0/wCk9NUIfgrMIYvlpKyc3pSZbTkNpLRP9jD34ZKBsyQyI1FwH98wH4iPo/ZHUWpiRIkdRUSgcKgEYntkg5GmsZdPbORb8HHFS17FpFXptxTypBT0ymYacLS1pWNAJI7UHIjLfzxuOEHgvWb/AJ+RrtvcQ7OMMdjPSzrgbLiAoqSpKjqzBJBBy3QEjwfMTASPyZc85Z/HHWhuhRIIY51Fy4jYjIxe0VTC3FwjbBYoc+ul15UxPhhYl225V3MuaJ0e6SANeW2F6RwgMTCUpN0OnMgH/DM/gifm+4mfBlzzln8caCyuDTec9XZNdfkmaXTG3UrfUt9C3FpBzKUpSTrOzM5ZQMZLwwbwfsoc+PEIuIVdwlFFeJ7qlHNSpCVJP/QY+9gcHarX/a0rcMrXJCUZmVOJDTrK1KTorKTmRq3RrMdsJL0u7EJ+qUOhrm5JUqw2lxLzaRpJBBGSlA6oL2B9uVS1MOKdSazKGUnmVvFbRUlWiFOqI1pJGwiKOmLEFtg3rRsC3GdbFyC/5odf+E1L83c64v7J4KqqNcEpU6/XGJ2XlHEvJlZZlSQ6pJzAUpR1JzA1Aa4YaJCrpyKRSqZErCBrRJVwjh/xfrI/2S/qUxbWbwaqxedsU64JavU+WZnmuNS04ysqQMyMiRq3ReY2YQXxdeJVTq9GoS5qReSyG3Q+2nS0W0g6lKB2gwdcJaJULcw5oVJqkuZadlZbQeaKgrQVpKOWYJG+GnzBZBbYN6WZAD4rrYuQI/NDr/wmpXm7nXBDwWwQqeF1en6lO1aSnkTUqJcIYbWkpOmFZnPdqgxRIUfNRHtsuNyaZLQ2moCkSJEhdbod4z+1NP8AlJ9Awh+IHf3cXzlM+sVD34zEexVOGeszKtX/AEQiGIOq+7i+c5n1qo5ct77G2N7irnohfCz7iXalySNYS3xyZdz9I1nlxjagUrTnuzSSM90ONh9iKmkU1EzJf5tQpo8Y260e2bURrB96r3yFZEEeUpBHdptZqVGcU5TahNyS1ZaSpd5TZORzGeRGcbTcmYrmxIbrLxgcewhQ11LivQcYzUY/6Gf+pH4o55ZaP4BP/Uj8UIc9iReL4QF3PWDxaQhOU0sah4jrj4rvy63EKQu5awpKhkQZxzIj64xyE980fj6qat0J+OWKk/s6o/up6445YqT+zaj+6nrjz9/Keu/tmpedL64n5TVz9s1LzpfXBkJ75o/H1RVuhegXLDSf2bUf3U9cTlhpP7NqP7qeuPPP2SnfDJj+Krrjn2Tnh/rJn+KrrifZ535w/H1UVboXoXyxUn9m1H91PXHHLLR/AJ/6kfijz+/KauftmpedL647gv8Au0AAXNWQAMh/jHOuIyE980fj6qat0J9eWaj+AT/1I/FE5ZaP4BP/AFI/FCF8oF3fCas+eOdcTlAu74TVnzxzrgyE980fj6oq3Qn05ZaN4BP/AFI64nLLRh/oJ/6kfihC+UC7vhNWfPHOuOU4hXelQULnrOYOf/y19cGQnvmj8fVFW6E+XLPRfAp7+j8UTloovgU9/R+KEc5Xb8+FVU/i/wDiOOV2/PhVVP4v/iDIT3zR+PqirdCeTloovgU9/R+KOFYz0bROjIzxO4dp1wjnK7fnwqqn8X/xHC8W77WhSDdVVyUCDk9l9sGQnvmj8fVFW6EzuI+JDTbSbir6UyslKgmRkSrt5tzaEpG1WZA0l7EpB35Ap5UJ56pz8zPTCtJ6ZdU84edSiSftMfup1eo1qaM3U56anphQCS7MuqcWRuGaiTlHUhiUlMgCXG052J4zKHOqv//Z" alt="CPF"></div>
+      <div class="lh-org">
+        <div class="name" contenteditable="true">บริษัท เจริญโภคภัณฑ์อาหาร จำกัด (มหาชน)</div>
+        <div class="sub" id="lhFarm"></div>
+      </div>
+      <div class="doc-ref">เลขที่เอกสาร<br><b id="docRef" contenteditable="true" title="แตะเพื่อแก้ไข">SHE-MTG-2569-001</b></div>
+    </div>
+    <div class="lh-title"><h1>รายงานการประชุม</h1></div>
+  </header>
+  <div class="gold-rule"></div>
+
+  <div class="body">
+    <!-- ๑ ข้อมูลการประชุม -->
+    <section class="section">
+      <div class="sec-head"><span class="sec-no">๑</span><h2>ข้อมูลการประชุม</h2></div>
+      <div class="sec-body">
+        <div class="grid">
+          <div class="field">
+            <label>ฟาร์ม / ศูนย์วิจัย <span class="req">*</span></label>
+            <select id="farm" onchange="onFarmChange()">
+              <option value="">— เลือกฟาร์ม / ศูนย์วิจัย —</option>
+              <option>ศูนย์วิจัยหัวกุญแจ</option>
+              <option>ศูนย์วิจัยไร่สาม</option>
+              <option>ศูนย์วิจัยหาดเจ้า</option>
+              <option>ศูนย์วิจัยเพชรบุรี</option>
+              <option>ศูนย์ปรับปรุงพันธุ์สัตว์น้ำหาดเจ้า</option>
+              <option value="__other__">อื่น ๆ (ระบุเอง)…</option>
+            </select>
+            <input class="farm-other" id="farmOther" placeholder="พิมพ์ชื่อฟาร์ม / ศูนย์วิจัย" oninput="updateFarmLabel()">
+          </div>
+          <div class="field">
+            <label>เรื่อง / หัวข้อการประชุม <span class="req">*</span></label>
+            <input id="topic" placeholder="เช่น ประชุมคณะทำงาน SHE&En ประจำเดือน">
+          </div>
+          <div class="grid two">
+            <div class="field"><label>ครั้งที่</label><input id="round" placeholder="เช่น 6/2569"></div>
+            <div class="field"><label>ประเภทการประชุม</label>
+              <select id="meetType">
+                <option>ประชุมประจำเดือน</option><option>ประชุมวาระพิเศษ</option>
+                <option>ประชุมคณะทำงาน</option><option>ประชุมติดตามงาน</option><option>อื่น ๆ</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid two">
+            <div class="field"><label>วันที่ <span class="req">*</span></label><input id="date" type="date"></div>
+            <div class="field"><label>เวลา</label><input id="time" placeholder="เช่น 09:00 – 11:00 น."></div>
+          </div>
+          <div class="field"><label>สถานที่ / ช่องทาง</label>
+            <input id="place" placeholder="เช่น ห้องประชุมศูนย์ฯ / ออนไลน์ (Zoom)"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ๒ ผู้เข้าร่วม -->
+    <section class="section">
+      <div class="sec-head"><span class="sec-no">๒</span><h2>ผู้เข้าร่วมประชุม</h2></div>
+      <div class="sec-body">
+        <div class="rows" id="attList"></div>
+        <button class="add-btn" onclick="addAttendee()">+ เพิ่มผู้เข้าร่วม</button>
+        <p class="hint">เลือกสถานะ: เข้าประชุม / ลา / ขาด</p>
+      </div>
+    </section>
+
+    <!-- ๓ วาระ -->
+    <section class="section">
+      <div class="sec-head"><span class="sec-no">๓</span><h2>วาระการประชุม &amp; มติที่ประชุม</h2></div>
+      <div class="sec-body">
+        <div class="rows" id="agendaList"></div>
+        <button class="add-btn" onclick="addAgenda()">+ เพิ่มวาระ</button>
+      </div>
+    </section>
+
+    <!-- ๔ งาน -->
+    <section class="section">
+      <div class="sec-head"><span class="sec-no">๔</span><h2>มอบหมายงาน / ติดตามผล</h2></div>
+      <div class="sec-body">
+        <div class="rows" id="taskList"></div>
+        <button class="add-btn" onclick="addTask()">+ เพิ่มงานที่มอบหมาย</button>
+      </div>
+    </section>
+
+    <!-- ๕ ครั้งถัดไป -->
+    <section class="section">
+      <div class="sec-head"><span class="sec-no">๕</span><h2>การประชุมครั้งถัดไป &amp; ผู้บันทึก</h2></div>
+      <div class="sec-body">
+        <div class="grid two">
+          <div class="field"><label>วันที่ประชุมครั้งถัดไป</label><input id="nextDate" type="date"></div>
+          <div class="field"><label>ผู้บันทึกการประชุม</label><input id="recorder" placeholder="ชื่อ-นามสกุล"></div>
+        </div>
+        <div class="field" style="margin-top:13px">
+          <label>หมายเหตุเพิ่มเติม</label>
+          <textarea id="note" placeholder="ข้อสังเกต / เรื่องที่เลื่อนพิจารณา ฯลฯ"></textarea>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== TAB: HISTORY ===================== -->
+<div id="tabHistory" class="tab">
+  <div class="hist-bar">
+    <input id="searchBox" placeholder="🔍 ค้นหา ฟาร์ม / หัวข้อ..." oninput="renderHistory()">
+  </div>
+  <div class="hist-cards" id="histCards">
+    <div class="hist-empty">กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- ===== Action bar ===== -->
+<div class="actionbar">
+  <button class="btn btn-ghost" onclick="printForm()">🖨️ <span class="lbl">พิมพ์ / PDF</span></button>
+  <button class="btn btn-gold" onclick="resetForm()">🔄 <span class="lbl">ล้างฟอร์ม</span></button>
+  <button class="btn btn-primary" id="btnSave" onclick="saveMeeting()">💾 <span class="lbl">บันทึกลง Sheets</span></button>
+</div>
+
+<!-- ===== Detail modal ===== -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">รายละเอียดการประชุม</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG — ใส่ GAS Web App URL หลัง Deploy
+   ============================================================ */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxNfM_RiMhmXlwIzl1fEZ3-uvlaXrOnzoPkJkb3K0v7n6TeN7d_aVA_KUm3ghu8CYYy/exec';
+
+/* ============================================================
+   FARM / LETTERHEAD
+   ============================================================ */
+function onFarmChange(){
+  const sel = document.getElementById('farm');
+  const other = document.getElementById('farmOther');
+  if(sel.value === '__other__'){ other.style.display='block'; other.focus(); }
+  else { other.style.display='none'; }
+  updateFarmLabel();
+}
+function updateFarmLabel(){
+  const sel = document.getElementById('farm');
+  const other = document.getElementById('farmOther');
+  let name = sel.value === '__other__' ? other.value.trim() : sel.value;
+  document.getElementById('lhFarm').textContent = name || '';
+}
+function getFarm(){
+  const sel = document.getElementById('farm');
+  return sel.value === '__other__'
+    ? document.getElementById('farmOther').value.trim()
+    : sel.value;
+}
+
+/* ============================================================
+   DYNAMIC ROWS
+   ============================================================ */
+function addAttendee(name='', status='เข้าประชุม'){
+  const d = document.createElement('div');
+  d.className = 'att-row';
+  d.innerHTML = `
+    <input placeholder="ชื่อ-นามสกุล / ตำแหน่ง" value="${name}">
+    <select class="status-sel">
+      <option${status==='เข้าประชุม'?' selected':''}>เข้าประชุม</option>
+      <option${status==='ลา'?' selected':''}>ลา</option>
+      <option${status==='ขาด'?' selected':''}>ขาด</option>
+    </select>
+    <button class="rm-inline" onclick="this.parentElement.remove()">×</button>`;
+  document.getElementById('attList').appendChild(d);
+}
+
+let agendaCount = 0;
+function addAgenda(data={}){
+  agendaCount++;
+  const d = document.createElement('div');
+  d.className = 'row-item';
+  d.innerHTML = `
+    <button class="rm" onclick="this.parentElement.remove()">×</button>
+    <span class="agenda-no">${agendaCount}</span>
+    <div class="grid">
+      <div class="field"><label>หัวข้อวาระ</label>
+        <input placeholder="เช่น สรุปผลการตรวจความปลอดภัย" value="${data.title||''}"></div>
+      <div class="field"><label>รายละเอียด / สาระสำคัญ</label>
+        <textarea placeholder="สรุปสิ่งที่หารือ">${data.detail||''}</textarea></div>
+      <div class="field"><label>มติที่ประชุม</label>
+        <textarea placeholder="สรุปมติ / ข้อตกลง" style="min-height:55px">${data.resolution||''}</textarea></div>
+    </div>`;
+  document.getElementById('agendaList').appendChild(d);
+}
+
+function addTask(data={}){
+  const d = document.createElement('div');
+  d.className = 'row-item';
+  const st = data.status || 'ยังไม่เริ่ม';
+  d.innerHTML = `
+    <button class="rm" onclick="this.parentElement.remove()">×</button>
+    <div class="grid">
+      <div class="field"><label>งานที่มอบหมาย</label>
+        <input placeholder="สิ่งที่ต้องดำเนินการ" value="${data.task||''}"></div>
+      <div class="grid two">
+        <div class="field"><label>ผู้รับผิดชอบ</label>
+          <input placeholder="ชื่อ / หน่วยงาน" value="${data.assignee||''}"></div>
+        <div class="field"><label>กำหนดแล้วเสร็จ</label>
+          <input type="date" value="${data.due_date||''}"></div>
+      </div>
+      <div class="field"><label>สถานะ</label>
+        <select class="status-sel">
+          <option${st==='ยังไม่เริ่ม'?' selected':''}>ยังไม่เริ่ม</option>
+          <option${st==='กำลังดำเนินการ'?' selected':''}>กำลังดำเนินการ</option>
+          <option${st==='เสร็จสิ้น'?' selected':''}>เสร็จสิ้น</option>
+        </select></div>
+    </div>`;
+  document.getElementById('taskList').appendChild(d);
+}
+
+/* ============================================================
+   COLLECT FORM DATA
+   ============================================================ */
+function collectForm(){
+  const attendees = [...document.querySelectorAll('#attList .att-row')].map(r=>({
+    name: r.querySelector('input').value.trim(),
+    status: r.querySelector('select').value
+  })).filter(a => a.name);
+
+  const agendas = [...document.querySelectorAll('#agendaList .row-item')].map(r=>{
+    const inputs = r.querySelectorAll('input,textarea');
+    return { title: inputs[0].value.trim(), detail: inputs[1].value.trim(), resolution: inputs[2].value.trim() };
+  });
+
+  const tasks = [...document.querySelectorAll('#taskList .row-item')].map(r=>{
+    const inputs = r.querySelectorAll('input');
+    const sel = r.querySelector('select');
+    return { task: inputs[0].value.trim(), assignee: inputs[1].value.trim(),
+             due_date: inputs[2].value, status: sel.value };
+  });
+
+  return {
+    action: 'save',
+    doc_ref: document.getElementById('docRef').textContent.trim(),
+    farm: getFarm(),
+    topic: document.getElementById('topic').value.trim(),
+    meeting_type: document.getElementById('meetType').value,
+    round: document.getElementById('round').value.trim(),
+    date: document.getElementById('date').value,
+    time: document.getElementById('time').value.trim(),
+    place: document.getElementById('place').value.trim(),
+    recorder: document.getElementById('recorder').value.trim(),
+    next_date: document.getElementById('nextDate').value,
+    note: document.getElementById('note').value.trim(),
+    attendees, agendas, tasks
+  };
+}
+
+/* ============================================================
+   SAVE → GAS
+   ============================================================ */
+async function saveMeeting(){
+  if(!document.getElementById('farm').value){ toast('⚠️ กรุณาเลือกฟาร์มก่อนครับ'); return; }
+  if(!document.getElementById('topic').value.trim()){ toast('⚠️ กรุณาระบุหัวข้อการประชุม'); return; }
+  if(!document.getElementById('date').value){ toast('⚠️ กรุณาเลือกวันที่ประชุม'); return; }
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+
+  try {
+    const body = collectForm();
+    const res = await fetch(GAS_URL, {
+      method:'POST', body: JSON.stringify(body),
+      headers:{'Content-Type':'application/json'}
+    });
+    const json = await res.json();
+    if(json.ok){
+      toast('✅ บันทึกสำเร็จ! (#' + json.data.meeting_id + ')');
+      loadHistory();
+    } else {
+      toast('❌ บันทึกไม่สำเร็จ: ' + json.error);
+    }
+  } catch(e){
+    toast('❌ เชื่อมต่อ GAS ไม่ได้ กรุณาตั้งค่า GAS_URL ก่อนครับ');
+  }
+
+  btn.disabled = false; btn.innerHTML = '💾 <span class="lbl">บันทึกลง Sheets</span>';
+}
+
+/* ============================================================
+   HISTORY
+   ============================================================ */
+let histData = [];
+
+async function loadHistory(){
+  try {
+    const res = await fetch(GAS_URL + '?action=list');
+    const json = await res.json();
+    if(json.ok){ histData = json.data; renderHistory(); }
+  } catch(e){
+    histData = [];
+    document.getElementById('histCards').innerHTML =
+      '<div class="hist-empty">⚠️ ไม่สามารถโหลดข้อมูลได้<br>กรุณาตั้งค่า GAS_URL ใน config</div>';
+  }
+}
+
+function renderHistory(){
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const filtered = histData.filter(m =>
+    (m.farm||'').toLowerCase().includes(q) ||
+    (m.topic||'').toLowerCase().includes(q) ||
+    (m.doc_ref||'').toLowerCase().includes(q)
+  );
+
+  const container = document.getElementById('histCards');
+  if(!filtered.length){
+    container.innerHTML = '<div class="hist-empty">ไม่พบรายการประชุม</div>'; return;
+  }
+
+  container.innerHTML = filtered.map(m => `
+    <div class="hist-card" onclick="openDetail('${m.meeting_id}')">
+      <div class="hc-top">
+        <span class="hc-farm">${m.farm||'—'}</span>
+        <span class="hc-date">${thDate(m.date)}</span>
+      </div>
+      <div class="hc-topic">${m.topic||'(ไม่มีหัวข้อ)'}</div>
+      <div class="hc-meta">
+        📄 ${m.doc_ref||'—'} &nbsp;·&nbsp; 🕐 ${m.time||'—'} &nbsp;·&nbsp; ครั้งที่ ${m.round||'—'}
+        <button class="hc-del btn-del" onclick="event.stopPropagation();deleteMeeting('${m.meeting_id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+async function openDetail(id){
+  document.getElementById('modalBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">กำลังโหลด...</div>';
+  document.getElementById('modal').classList.add('open');
+  try {
+    const res = await fetch(GAS_URL + '?action=get&id=' + id);
+    const json = await res.json();
+    if(json.ok && json.data) renderModal(json.data);
+    else document.getElementById('modalBody').innerHTML = '<p style="color:red">โหลดไม่สำเร็จ</p>';
+  } catch(e){
+    document.getElementById('modalBody').innerHTML = '<p style="color:red">เชื่อมต่อไม่ได้</p>';
+  }
+}
+
+function renderModal(m){
+  document.getElementById('modalTitle').textContent = m.topic || 'รายละเอียดการประชุม';
+  const present = (m.attendees||[]).filter(a=>a.status==='เข้าประชุม').length;
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="m-section">
+      <h3>ข้อมูลทั่วไป</h3>
+      <div class="m-grid">
+        <div><div class="m-label">ฟาร์ม</div><div class="m-val">${m.farm||'—'}</div></div>
+        <div><div class="m-label">เลขที่เอกสาร</div><div class="m-val">${m.doc_ref||'—'}</div></div>
+        <div><div class="m-label">วันที่</div><div class="m-val">${thDate(m.date)}</div></div>
+        <div><div class="m-label">เวลา</div><div class="m-val">${m.time||'—'}</div></div>
+        <div><div class="m-label">สถานที่</div><div class="m-val">${m.place||'—'}</div></div>
+        <div><div class="m-label">ครั้งที่</div><div class="m-val">${m.round||'—'}</div></div>
+        <div><div class="m-label">ผู้เข้าประชุม</div><div class="m-val">${present} / ${(m.attendees||[]).length} คน</div></div>
+        <div><div class="m-label">ผู้บันทึก</div><div class="m-val">${m.recorder||'—'}</div></div>
+      </div>
+    </div>
+
+    <div class="m-section">
+      <h3>ผู้เข้าร่วมประชุม</h3>
+      ${(m.attendees||[]).map(a=>`
+        <div class="m-item">
+          ${a.name} — <span class="badge ${a.status==='เข้าประชุม'?'badge-ok':a.status==='ลา'?'badge-warn':'badge-danger'}">${a.status}</span>
+        </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ไม่มีข้อมูล</p>'}
+    </div>
+
+    <div class="m-section">
+      <h3>วาระการประชุม</h3>
+      ${(m.agendas||[]).map(a=>`
+        <div class="m-item">
+          <b><span class="mi-no">${a.order_no}.</span>${a.title||'—'}</b><br>
+          ${a.detail ? '<div style="margin-top:4px;color:var(--muted);font-size:13px">'+a.detail+'</div>' : ''}
+          ${a.resolution ? '<div style="margin-top:6px;background:var(--teal-soft);border-radius:6px;padding:6px 10px;font-size:13px"><b>มติ:</b> '+a.resolution+'</div>' : ''}
+        </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ไม่มีวาระ</p>'}
+    </div>
+
+    <div class="m-section">
+      <h3>งานมอบหมาย</h3>
+      ${(m.tasks||[]).map(t=>`
+        <div class="m-item">
+          <b>${t.task||'—'}</b><br>
+          <span style="font-size:13px;color:var(--muted)">ผู้รับผิดชอบ: ${t.assignee||'—'} &nbsp;·&nbsp; กำหนด: ${thDate(t.due_date)}</span>
+          &nbsp;<span class="badge ${t.status==='เสร็จสิ้น'?'badge-ok':t.status==='กำลังดำเนินการ'?'badge-warn':'badge-danger'}">${t.status}</span>
+        </div>`).join('') || '<p style="color:var(--muted);font-size:13px">ไม่มีงานมอบหมาย</p>'}
+    </div>
+
+    ${m.note?`<div class="m-section"><h3>หมายเหตุ</h3><p style="font-size:14px">${m.note}</p></div>`:''}
+  `;
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+async function deleteMeeting(id){
+  if(!confirm('ต้องการลบรายการประชุมนี้?')) return;
+  try {
+    const res = await fetch(GAS_URL, {
+      method:'POST', body: JSON.stringify({action:'delete', meeting_id:id}),
+      headers:{'Content-Type':'application/json'}
+    });
+    const json = await res.json();
+    if(json.ok){ toast('🗑 ลบเรียบร้อย'); loadHistory(); }
+    else toast('❌ ลบไม่สำเร็จ');
+  } catch(e){ toast('❌ เชื่อมต่อ GAS ไม่ได้'); }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function thDate(str){
+  if(!str) return '—';
+  const d = new Date(str);
+  if(isNaN(d)) return str;
+  return d.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+}
+
+function toast(msg, ms=3000){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), ms);
+}
+
+function switchTab(id, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id === 'tabHistory') loadHistory();
+}
+
+function printForm(){ window.print(); }
+
+function resetForm(){
+  if(!confirm('ล้างฟอร์มทั้งหมด?')) return;
+  ['topic','round','time','place','recorder','note','nextDate'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('farm').value='';
+  document.getElementById('farmOther').style.display='none';
+  document.getElementById('lhFarm').textContent='';
+  document.getElementById('date').valueAsDate = new Date();
+  document.getElementById('attList').innerHTML='';
+  document.getElementById('agendaList').innerHTML='';
+  document.getElementById('taskList').innerHTML='';
+  agendaCount=0;
+  addAttendee(); addAttendee(); addAgenda(); addTask();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.getElementById('date').valueAsDate = new Date();
+addAttendee(); addAttendee();
+addAgenda(); addTask();
+</script>
+</body>
+</html>
